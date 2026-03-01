@@ -121,8 +121,8 @@ end
 
 local function UpdateCast()
 
-       local name, _, texture, start, endTime, isTradeSkill, castID, notInterruptible, spellid = UnitCastingInfo(
-            "target");
+    local name, _, texture, start, endTime, isTradeSkill, castID, notInterruptible, spellid = UnitCastingInfo("target");
+           
 
     if name then
         castBar:SetTimerDuration(UnitCastingDuration("target"), 0, 0)
@@ -132,20 +132,15 @@ local function UpdateCast()
         staticOutline:SetVertexColorFromBoolean(notInterruptible,  CreateColor(0.822, 0.629, 0.225, 1), CreateColor(1.0, 0.2, 0.2, 1))
 
         gifTexture:SetVertexColorFromBoolean(notInterruptible, CreateColor(0.0, 0.0, 0.0, 0), CreateColor(1, 0.7, 0.3, 1))
-
- 
+     
         bg:SetVertexColorFromBoolean(notInterruptible, CreateColor(0.259, 0.188, 0.024, 1, 1), CreateColor(0.23, 0.10, 0.0, 1))
-
 
         if not UnitCanAttack("player", "target") then
             gifTexture:SetVertexColor(0.0, 0.0, 0.0, 0)
             staticOutline:SetVertexColor(unpack(NORMAL_OUTLINE_COLOR))
             castBar:SetStatusBarColor(1, 1, 1)
             bg:SetVertexColor(0.259, 0.188, 0.024, 1)
-
         end 
-
-
 
         text:SetText(name)
         castBar:Show()
@@ -155,7 +150,7 @@ local function UpdateCast()
     end
 
 
-     name, _, texture, start, endTime, isTradeSkill, castID, notInterruptible, spellid = UnitChannelInfo("target");
+    name, _, texture, start, endTime, isTradeSkill, notInterruptible, spellid = UnitChannelInfo("target");
          
  
     if name then
@@ -169,6 +164,13 @@ local function UpdateCast()
 
         bg:SetVertexColorFromBoolean(notInterruptible, CreateColor(0.259, 0.188, 0.024, 1), CreateColor(0.23, 0.10, 0.0, 1))
 
+        if not UnitCanAttack("player", "target") then
+            gifTexture:SetVertexColor(0.0, 0.0, 0.0, 0)
+            staticOutline:SetVertexColor(unpack(NORMAL_OUTLINE_COLOR))
+            castBar:SetStatusBarColor(1, 1, 1)
+            bg:SetVertexColor(0.259, 0.188, 0.024, 1)
+        end 
+
         text:SetText(name)
         castBar:Show()
         outlineFrame:Show()
@@ -177,6 +179,7 @@ local function UpdateCast()
     end
 
     StopCast()
+
 end
 
 local function OnCastStart()
@@ -187,22 +190,9 @@ end
 
 
 
-local channelCheckTicker = nil
 local function OnChannelStart(unit)
-    if unit ~= "target" then return end
-
-    if channelCheckTicker then
-        channelCheckTicker:Cancel()
-    end
-
-    channelCheckTicker = C_Timer.NewTicker(0.02, function()
-        local name = UnitChannelInfo("target")
-        if name then
-            UpdateCast()
-            channelCheckTicker:Cancel()
-            channelCheckTicker = nil
-        end
-    end, 50)
+       UpdateCast()    
+       StartGif()
 end
 
 
@@ -221,29 +211,30 @@ f:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
 
 f:SetScript("OnEvent", function(_, event, unit)
     if event == "PLAYER_TARGET_CHANGED" then
-        StopCast()
-        OnCastStart()
+        UpdateCast()
+        
+        if castBar:IsShown() then
+            StartGif()
+        else
+            StopGif()
+        end
+        return
     end
 
     if unit == "target" then
-        if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+        if event == "UNIT_SPELLCAST_CHANNEL_START" then
+            C_Timer.After(0.01, OnCastStart)
+        elseif event == "UNIT_SPELLCAST_START" then
             OnCastStart()
-        elseif event == "UNIT_SPELLCAST_STOP"
-            or event == "UNIT_SPELLCAST_CHANNEL_STOP"
-            or event == "UNIT_SPELLCAST_FAILED"
-            or event == "UNIT_SPELLCAST_INTERRUPTED"
-            or event == "UNIT_SPELLCAST_SUCCEEDED" then
+        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_FAILED" then
             StopCast()
-        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" then
-            SetInterruptVisuals(true)
-            print("interruptible")
-            StartGif()
-        elseif event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-            SetInterruptVisuals(false)
-            StopGif()
+        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
+            UpdateCast()
         end
     end
 end)
+
+
 
 
 castBar:SetScript("OnUpdate", UpdateCast)
