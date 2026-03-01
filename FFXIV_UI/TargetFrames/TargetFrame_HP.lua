@@ -10,7 +10,7 @@ local SCALE = 103
 local function s(x) return x * SCALE / 100 end  
 
 
-FFTargetFrame = CreateFrame("Frame", "TargetFrame", UIParent)
+FFTargetFrame = CreateFrame("Frame", "FFTargetFrame", UIParent)
 FFTargetFrame:EnableMouse(false)
 local f = FFTargetFrame
 
@@ -150,7 +150,7 @@ end
 
 local function UpdateColors()
     if not UnitExists("target") then return end
-    rareIcon:Hide()
+   -- rareIcon:Hide()
 
 
 
@@ -240,6 +240,14 @@ local function UpdateColors()
         outline:SetVertexColor(unpack(COLORS.neutral))
         SetBarAndTextColor(235/255,222/255,129/255)
     end
+
+    -- Rare check (always evaluate regardless of combat/reaction)
+local classification = UnitClassification("target")
+if classification == "rare" or classification == "rareelite" then
+    rareIcon:Show()
+else
+    rareIcon:Hide()
+end
 end
 
 
