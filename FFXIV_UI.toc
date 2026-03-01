@@ -39,6 +39,7 @@ TargetFrames/TargetOfTargetFrame.lua
 TargetFrames/TargetAuras.lua
 TargetFrames/TargetDebuffs.lua
 TargetFrames/TargetArrow.lua
+TargetFrames/FocusTargetFrame.lua
 
 
 

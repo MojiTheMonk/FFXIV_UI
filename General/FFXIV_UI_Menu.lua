@@ -10,11 +10,12 @@ local anchorConfigs = {
     { key = "PlayerHP",      label = "Player Health",      w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", -140, 55} },
     { key = "PlayerPower",   label = "Player Power",       w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 100, 55} },
     { key = "PlayerPowerSec",label = "Secondary Power",    w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 340, 55} },
-    { key = "TargetAuras",   label = "Target Buffs",       w = 850, h = 45,  scale = 1.0, pos = {"CENTER", 90, 455} },
-    { key = "TargetDebuffs", label = "Target Debuffs",     w = 850, h = 45,  scale = 1.0, pos = {"CENTER", 90, 410} },
-    { key = "TargetCast",    label = "Target Castbar",     w = 350, h = 30,  scale = 1.0, pos = {"CENTER", 180, 525} },
-    { key = "TargetHP",      label = "Target Health",      w = 670, h = 50,  scale = 1.0, pos = {"CENTER", 0, 500} },
-    { key = "TargetOfTarget",label = "Target of Target",   w = 340, h = 50,  scale = 1.0, pos = {"CENTER", 505, 500} },
+    { key = "TargetAuras",   label = "Target Buffs",       w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -70} },
+    { key = "TargetDebuffs", label = "Target Debuffs",     w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -115} },
+    { key = "TargetCast",    label = "Target Castbar",     w = 350, h = 30,  scale = 1.0, pos = {"TOP", 180, 0} },
+    { key = "TargetHP",      label = "Target Health",      w = 670, h = 50,  scale = 1.0, pos = {"TOP", 0, -25} },
+    { key = "TargetOfTarget",label = "Target of Target",   w = 340, h = 50,  scale = 1.0, pos = {"TOP", 505, -25} },
+    { key = "FocusTarget",   label = "Focus Target",       w = 340, h = 50,  scale = 1.0, pos = {"TOP", -505, -25} },
 }
 
 local visualBoxes = {}

@@ -101,7 +101,8 @@ local function Update()
 
 
     elseif (class == "SHAMAN" and spec == 1)
-        or (class == "DRUID" and spec == 1) then
+        or (class == "DRUID" and spec == 1)
+        or (class == "PRIEST" and spec == 3) then
 
         local mana = UnitPower("player", Enum.PowerType.Mana)
         local maxMana = UnitPowerMax("player", Enum.PowerType.Mana)

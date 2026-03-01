@@ -76,7 +76,7 @@ local CLICK_RECT_WIDTH  = s(240)
 local CLICK_RECT_HEIGHT = s(48)
 local clickFrame = CreateFrame("Button", nil, outlineFrame, "SecureUnitButtonTemplate")
 
-clickFrame:SetFrameStrata("HIGH")
+clickFrame:SetFrameStrata("MEDIUM")
 clickFrame:SetFrameLevel(outlineFrame:GetFrameLevel() + 10)
 clickFrame:SetSize(CLICK_RECT_WIDTH, CLICK_RECT_HEIGHT)
 clickFrame:SetPoint("CENTER", outlineFrame, "CENTER", 0, s(-10))
