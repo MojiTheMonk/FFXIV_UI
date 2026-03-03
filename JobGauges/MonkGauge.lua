@@ -88,11 +88,12 @@ local MAX_CHI = 5
 local function ConfigureForSpecAndTalents()
     if not IsWindwalker() then
         frame:Hide()
+        overlayFrame:Hide()
         return
     end
 
     frame:Show()
-
+    overlayFrame:Show()
     if HasAscension() then
         MAX_CHI = 6
         frame.base:SetTexture(FRAME_TEXTURE_ASCENSION)
