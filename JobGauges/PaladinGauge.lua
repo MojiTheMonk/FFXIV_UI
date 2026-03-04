@@ -7,7 +7,11 @@ local MAX_HOLY_POWER = 5
 local POWER_TYPE = Enum.PowerType.HolyPower
 
 local gaugeFullSFX = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Gauge_Full.ogg"  
-
+local function PlayGaugeSFX(filePath)
+    if FFXIV_UI_DB and FFXIV_UI_DB.sfxEnabled then
+        PlaySoundFile(filePath, "Master")
+    end
+end
  
 local frame = CreateFrame("Frame", "HolyPowerTrackerFrame", UIParent)
 frame:SetSize(350, 350)
@@ -66,7 +70,7 @@ local function UpdateHolyPower()
     end
 
     if power == MAX_HOLY_POWER and previousHolyPower < MAX_HOLY_POWER then
-        PlaySoundFile(gaugeFullSFX, "Master")
+          PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousHolyPower = power

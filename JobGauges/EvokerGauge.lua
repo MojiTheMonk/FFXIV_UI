@@ -28,7 +28,10 @@ local orbTextures = {
 local function HasPowerNexus()
     return IsPlayerSpell(POWER_NEXUS_SPELL_ID)
 end
-
+local function PlayGaugeSFX(filePath)
+    if not FFXIV_UI_DB or not FFXIV_UI_DB.sfxEnabled then return end
+    PlaySoundFile(filePath, "Master")
+end
 
 local frame = CreateFrame("Frame", "EssenceTrackerFrame", UIParent)
 frame:SetSize(375, 375)
@@ -92,7 +95,7 @@ local function UpdateEssence()
 
  
     if power == MAX_ESSENCE and previousPower < MAX_ESSENCE then
-        PlaySoundFile(gaugeFullSFX, "Master")
+        PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousPower = power

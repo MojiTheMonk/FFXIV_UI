@@ -8,7 +8,11 @@ local POWER_TYPE = 4
 local FADE_TIME = 0.2
 
 local gaugeFullSFX = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Gauge_Full.ogg"
-
+local function PlayGaugeSFX(filePath)
+    if FFXIV_UI_DB and FFXIV_UI_DB.sfxEnabled then
+        PlaySoundFile(filePath, "Master")
+    end
+end
  
 local frame = CreateFrame("Frame", "ComboTrackerFrame", UIParent)
 frame:SetSize(350, 350)
@@ -89,9 +93,9 @@ local function UpdateComboPoints()
         end
     end
 
-    if comboPoints == MAX_COMBO_POINTS and previousFeralPoints < MAX_COMBO_POINTS then
-        PlaySoundFile(gaugeFullSFX, "Master")
-    end
+if comboPoints == MAX_COMBO_POINTS and previousFeralPoints < MAX_COMBO_POINTS then
+    PlayGaugeSFX(gaugeFullSFX)
+end
 
     frame.currentPoints = comboPoints
     previousFeralPoints = comboPoints

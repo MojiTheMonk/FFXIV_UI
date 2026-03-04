@@ -1,374 +1,394 @@
 
 
-FFXIV_UI_Anchors = FFXIV_UI_Anchors or {}
-FFXIV_UI_DB = FFXIV_UI_DB or {}
+    FFXIV_UI_Anchors = FFXIV_UI_Anchors or {}
+    FFXIV_UI_DB = FFXIV_UI_DB or {}
 
-local anchorConfigs = {
-    { key = "ExpBar",        label = "Experience Bar",     w = 800, h = 25,  scale = 1.0, pos = {"BOTTOM", 0, 30} },
-    { key = "JobGauge",      label = "Job Gauge",          w = 150, h = 100,  scale = 1.0, pos = {"CENTER", 400, -150} },
-    { key = "PlayerCast",    label = "Player Castbar",     w = 360, h = 100, scale = 1.0, pos = {"CENTER", 0, -170} },
-    { key = "PlayerHP",      label = "Player Health",      w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", -140, 55} },
-    { key = "PlayerPower",   label = "Player Power",       w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 100, 55} },
-    { key = "PlayerPowerSec",label = "Secondary Power",    w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 340, 55} },
-    { key = "TargetAuras",   label = "Target Buffs",       w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -70} },
-    { key = "TargetDebuffs", label = "Target Debuffs",     w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -115} },
-    { key = "TargetCast",    label = "Target Castbar",     w = 350, h = 30,  scale = 1.0, pos = {"TOP", 180, 0} },
-    { key = "TargetHP",      label = "Target Health",      w = 670, h = 50,  scale = 1.0, pos = {"TOP", 0, -25} },
-    { key = "TargetOfTarget",label = "Target of Target",   w = 340, h = 50,  scale = 1.0, pos = {"TOP", 505, -25} },
-    { key = "FocusTarget",   label = "Focus Target",       w = 340, h = 50,  scale = 1.0, pos = {"TOP", -505, -25} },
-}
-
-local visualBoxes = {}
-anchorsUnlocked = false  
-
-
-local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
-local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
-
-
-
-function FFXIV_UI_SetAnchorsUnlocked(unlocked)
-    anchorsUnlocked = unlocked
-    for _, box in ipairs(visualBoxes) do
-        box:SetShown(unlocked)
-        box:EnableMouse(unlocked)
-        box:EnableMouseWheel(unlocked)
-    end
-end
-
-local function ClampToScreen(anchor)
-    local scale = anchor:GetScale()
-    local width, height = anchor:GetWidth() * scale, anchor:GetHeight() * scale
-    local uiWidth, uiHeight = UIParent:GetWidth(), UIParent:GetHeight()
-    local point, _, relativePoint, x, y = anchor:GetPoint()
-    local halfW, halfH = width / 2, height / 2
-    x = math.max(-uiWidth/2 + halfW, math.min(uiWidth/2 - halfW, x))
-    y = math.max(-uiHeight/2 + halfH, math.min(uiHeight/2 - halfH, y))
-    anchor:ClearAllPoints()
-    anchor:SetPoint(point, UIParent, relativePoint, x, y)
-end
-
-local function SaveAnchorState(anchor, key)
-    local point, _, relativePoint, x, y = anchor:GetPoint()
-    FFXIV_UI_DB[key] = {
-        point = point,
-        relativePoint = relativePoint,
-        x = x,
-        y = y,
-        scale = anchor:GetScale()
+    local anchorConfigs = {
+        { key = "ExpBar",        label = "Experience Bar",     w = 800, h = 25,  scale = 1.0, pos = {"BOTTOM", 0, 30} },
+        { key = "JobGauge",      label = "Job Gauge",          w = 150, h = 100,  scale = 1.0, pos = {"CENTER", 400, -150} },
+        { key = "PlayerCast",    label = "Player Castbar",     w = 360, h = 100, scale = 1.0, pos = {"CENTER", 0, -170} },
+        { key = "PlayerHP",      label = "Player Health",      w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", -140, 55} },
+        { key = "PlayerPower",   label = "Player Power",       w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 100, 55} },
+        { key = "PlayerPowerSec",label = "Secondary Power",    w = 240, h = 86,  scale = 1.0, pos = {"BOTTOM", 340, 55} },
+        { key = "TargetAuras",   label = "Target Buffs",       w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -70} },
+        { key = "TargetDebuffs", label = "Target Debuffs",     w = 850, h = 45,  scale = 1.0, pos = {"TOP", 90, -115} },
+        { key = "TargetCast",    label = "Target Castbar",     w = 350, h = 30,  scale = 1.0, pos = {"TOP", 180, 0} },
+        { key = "TargetHP",      label = "Target Health",      w = 670, h = 50,  scale = 1.0, pos = {"TOP", 0, -25} },
+        { key = "TargetOfTarget",label = "Target of Target",   w = 340, h = 50,  scale = 1.0, pos = {"TOP", 505, -25} },
+        { key = "FocusTarget",   label = "Focus Target",       w = 340, h = 50,  scale = 1.0, pos = {"TOP", -505, -25} },
     }
-end
+
+    local visualBoxes = {}
+    anchorsUnlocked = false  
+
+
+    local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
+    local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
 
 
 
-local function CreateAnchor(data)
-    local anchor = CreateFrame("Frame", "FFXIV_Anchor_" .. data.key, UIParent)
-    anchor:SetSize(data.w, data.h)
-    anchor:SetMovable(true)
-    anchor:SetPoint(data.pos[1], UIParent, data.pos[1], data.pos[2], data.pos[3])
-    
-    anchor.key = data.key
-    anchor.defaultData = data
-
-    local visual = CreateFrame("Frame", nil, anchor, "BackdropTemplate")
-    visual:SetPoint("CENTER", anchor, "CENTER")
-    visual:SetFrameStrata("TOOLTIP")
-    visual:SetBackdrop({ 
-        bgFile = "Interface\\Buttons\\WHITE8X8", 
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
-        edgeSize = 14 
-    })
-    visual:SetBackdropColor(0.2, 0.2, 0.2, 0.25)
-    visual:SetBackdropBorderColor(1, 1, 1, 1)
-
-  
-    visual.nameText = visual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    visual.nameText:SetPoint("TOPLEFT", visual, 4, -4)
-    visual.nameText:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 14, "OUTLINE")
-    visual.nameText:SetTextColor(1,1,1)
-    visual.nameText:SetText(data.label)
-
-
-    visual.percentText = visual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    visual.percentText:SetPoint("TOPRIGHT", visual, -4, -4)
-    visual.percentText:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 14, "OUTLINE")
-    visual.percentText:SetTextColor(1,1,1)
-    visual.percentText:SetText("100%")
-
-
-    local btnInc = CreateFrame("Button", nil, visual)
-    btnInc:SetSize(25, 25)
-    btnInc:SetPoint("CENTER", visual, "CENTER", -14, 0)
-    btnInc:SetNormalTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga")
-    btnInc:SetPushedTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga")
-    btnInc:SetHighlightTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga", "ADD")
-
-    local btnDec = CreateFrame("Button", nil, visual)
-    btnDec:SetSize(25, 25)
-    btnDec:SetPoint("CENTER", visual, "CENTER", 14, 0)
-    btnDec:SetNormalTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga")
-    btnDec:SetPushedTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga")
-    btnDec:SetHighlightTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga", "ADD")
-
-    visual:RegisterForDrag("LeftButton")
-    visual:Hide()
-    table.insert(visualBoxes, visual)
-
-    local function RefreshVisualLayout()
-        local s = anchor:GetScale()
-        visual:SetSize(data.w * s, data.h * s)
-        visual:SetScale(1 / s)
-    end
-
-    local function UpdateScale(newScale)
-        local oldScale = anchor:GetScale()
-        local point, relativeTo, relativePoint, x, y = anchor:GetPoint()
-        local ratio = oldScale / newScale
-        anchor:SetScale(newScale)
-        anchor:ClearAllPoints()
-        anchor:SetPoint(point, relativeTo, relativePoint, x * ratio, y * ratio)
-        RefreshVisualLayout()
-        visual.percentText:SetText(math.floor(newScale * 100 + 0.5) .. "%")
-        SaveAnchorState(anchor, data.key)
-    end
-
-    btnInc:SetScript("OnClick", function() UpdateScale(math.min(2.5, anchor:GetScale() + 0.05)) end)
-    btnDec:SetScript("OnClick", function() UpdateScale(math.max(0.4, anchor:GetScale() - 0.05)) end)
-
-    visual:SetScript("OnDragStart", function() if anchorsUnlocked then anchor:StartMoving() end end)
-    visual:SetScript("OnDragStop", function() anchor:StopMovingOrSizing(); ClampToScreen(anchor); SaveAnchorState(anchor, data.key) end)
-    visual:SetScript("OnMouseWheel", function(_, delta) if anchorsUnlocked then UpdateScale(math.max(0.4, math.min(2.5, anchor:GetScale() + (delta * 0.05)))) end end)
-
-
-    visual:SetScript("OnEnter", function() visual:SetBackdropColor(1, 1, 0, 0.3) end) 
-    visual:SetScript("OnLeave", function() visual:SetBackdropColor(0.2, 0.2, 0.2, 0.25) end)
-
-    anchor.RefreshVisual = RefreshVisualLayout
-    return anchor
-end
-
-
-
-for _, data in ipairs(anchorConfigs) do
-    FFXIV_UI_Anchors[data.key] = CreateAnchor(data)
-end
-
-local loader = CreateFrame("Frame")
-loader:RegisterEvent("ADDON_LOADED")
-loader:SetScript("OnUpdate", function(self)
-    if EditModeManager then
-        SetupEditMode()
-        self:SetScript("OnUpdate", nil)
-    end
-end)
-
-loader:HookScript("OnEvent", function(self, event, addonName)
-    if addonName == "FFXIV_UI" then
-        for key, anchor in pairs(FFXIV_UI_Anchors) do
-            local saved = FFXIV_UI_DB[key]
-            if saved and saved.point then
-                anchor:SetScale(saved.scale or 1.0)
-                anchor:ClearAllPoints()
-                anchor:SetPoint(saved.point, UIParent, saved.relativePoint, saved.x, saved.y)
-            end
-            anchor.RefreshVisual()
+    function FFXIV_UI_SetAnchorsUnlocked(unlocked)
+        anchorsUnlocked = unlocked
+        for _, box in ipairs(visualBoxes) do
+            box:SetShown(unlocked)
+            box:EnableMouse(unlocked)
+            box:EnableMouseWheel(unlocked)
         end
     end
-end)
 
-
-
-SLASH_FFXIVUI1 = "/ffxivtoggle"
-SlashCmdList["FFXIVUI"] = function() 
-    anchorsUnlocked = not anchorsUnlocked
-    FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked) 
-    if anchorsUnlocked then
-        PlaySoundFile(soundOn, "Master")
-    else
-        PlaySoundFile(soundOff, "Master")
-    end
-end
-
-SLASH_FFXIVUIRESET1 = "/ffxivreset"
-SlashCmdList["FFXIVUIRESET"] = function()
-    for key, anchor in pairs(FFXIV_UI_Anchors) do
-        local d = anchor.defaultData
-        anchor:SetScale(d.scale)
+    local function ClampToScreen(anchor)
+        local scale = anchor:GetScale()
+        local width, height = anchor:GetWidth() * scale, anchor:GetHeight() * scale
+        local uiWidth, uiHeight = UIParent:GetWidth(), UIParent:GetHeight()
+        local point, _, relativePoint, x, y = anchor:GetPoint()
+        local halfW, halfH = width / 2, height / 2
+        x = math.max(-uiWidth/2 + halfW, math.min(uiWidth/2 - halfW, x))
+        y = math.max(-uiHeight/2 + halfH, math.min(uiHeight/2 - halfH, y))
         anchor:ClearAllPoints()
-        anchor:SetPoint(d.pos[1], UIParent, d.pos[1], d.pos[2], d.pos[3])
-        anchor.RefreshVisual()
-        SaveAnchorState(anchor, key)
+        anchor:SetPoint(point, UIParent, relativePoint, x, y)
     end
-end
+
+    local function SaveAnchorState(anchor, key)
+        local point, _, relativePoint, x, y = anchor:GetPoint()
+        FFXIV_UI_DB[key] = {
+            point = point,
+            relativePoint = relativePoint,
+            x = x,
+            y = y,
+            scale = anchor:GetScale()
+        }
+    end
+
+
+
+    local function CreateAnchor(data)
+        local anchor = CreateFrame("Frame", "FFXIV_Anchor_" .. data.key, UIParent)
+        anchor:SetSize(data.w, data.h)
+        anchor:SetMovable(true)
+        anchor:SetPoint(data.pos[1], UIParent, data.pos[1], data.pos[2], data.pos[3])
+    
+        anchor.key = data.key
+        anchor.defaultData = data
+
+        local visual = CreateFrame("Frame", nil, anchor, "BackdropTemplate")
+        visual:SetPoint("CENTER", anchor, "CENTER")
+        visual:SetFrameStrata("TOOLTIP")
+        visual:SetBackdrop({ 
+            bgFile = "Interface\\Buttons\\WHITE8X8", 
+            edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", 
+            edgeSize = 14 
+        })
+        visual:SetBackdropColor(0.2, 0.2, 0.2, 0.25)
+        visual:SetBackdropBorderColor(1, 1, 1, 1)
+
+  
+        visual.nameText = visual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        visual.nameText:SetPoint("TOPLEFT", visual, 4, -4)
+        visual.nameText:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 14, "OUTLINE")
+        visual.nameText:SetTextColor(1,1,1)
+        visual.nameText:SetText(data.label)
+
+
+        visual.percentText = visual:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        visual.percentText:SetPoint("TOPRIGHT", visual, -4, -4)
+        visual.percentText:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 14, "OUTLINE")
+        visual.percentText:SetTextColor(1,1,1)
+        visual.percentText:SetText("100%")
+
+
+        local btnInc = CreateFrame("Button", nil, visual)
+        btnInc:SetSize(25, 25)
+        btnInc:SetPoint("CENTER", visual, "CENTER", -14, 0)
+        btnInc:SetNormalTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga")
+        btnInc:SetPushedTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga")
+        btnInc:SetHighlightTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Plus.tga", "ADD")
+
+        local btnDec = CreateFrame("Button", nil, visual)
+        btnDec:SetSize(25, 25)
+        btnDec:SetPoint("CENTER", visual, "CENTER", 14, 0)
+        btnDec:SetNormalTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga")
+        btnDec:SetPushedTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga")
+        btnDec:SetHighlightTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Menu\\Minus.tga", "ADD")
+
+        visual:RegisterForDrag("LeftButton")
+        visual:Hide()
+        table.insert(visualBoxes, visual)
+
+        local function RefreshVisualLayout()
+            local s = anchor:GetScale()
+            visual:SetSize(data.w * s, data.h * s)
+            visual:SetScale(1 / s)
+        end
+
+        local function UpdateScale(newScale)
+            local oldScale = anchor:GetScale()
+            local point, relativeTo, relativePoint, x, y = anchor:GetPoint()
+            local ratio = oldScale / newScale
+            anchor:SetScale(newScale)
+            anchor:ClearAllPoints()
+            anchor:SetPoint(point, relativeTo, relativePoint, x * ratio, y * ratio)
+            RefreshVisualLayout()
+            visual.percentText:SetText(math.floor(newScale * 100 + 0.5) .. "%")
+            SaveAnchorState(anchor, data.key)
+        end
+
+        btnInc:SetScript("OnClick", function() UpdateScale(math.min(2.5, anchor:GetScale() + 0.05)) end)
+        btnDec:SetScript("OnClick", function() UpdateScale(math.max(0.4, anchor:GetScale() - 0.05)) end)
+
+        visual:SetScript("OnDragStart", function() if anchorsUnlocked then anchor:StartMoving() end end)
+        visual:SetScript("OnDragStop", function() anchor:StopMovingOrSizing(); ClampToScreen(anchor); SaveAnchorState(anchor, data.key) end)
+        visual:SetScript("OnMouseWheel", function(_, delta) if anchorsUnlocked then UpdateScale(math.max(0.4, math.min(2.5, anchor:GetScale() + (delta * 0.05)))) end end)
+
+
+        visual:SetScript("OnEnter", function() visual:SetBackdropColor(1, 1, 0, 0.3) end) 
+        visual:SetScript("OnLeave", function() visual:SetBackdropColor(0.2, 0.2, 0.2, 0.25) end)
+
+        anchor.RefreshVisual = RefreshVisualLayout
+        return anchor
+    end
+
+
+
+    for _, data in ipairs(anchorConfigs) do
+        FFXIV_UI_Anchors[data.key] = CreateAnchor(data)
+    end
+
+    local loader = CreateFrame("Frame")
+    loader:RegisterEvent("ADDON_LOADED")
+    loader:SetScript("OnUpdate", function(self)
+        if EditModeManager then
+            SetupEditMode()
+            self:SetScript("OnUpdate", nil)
+        end
+    end)
+
+    loader:HookScript("OnEvent", function(self, event, addonName)
+        if addonName == "FFXIV_UI" then
+            for key, anchor in pairs(FFXIV_UI_Anchors) do
+                local saved = FFXIV_UI_DB[key]
+                if saved and saved.point then
+                    anchor:SetScale(saved.scale or 1.0)
+                    anchor:ClearAllPoints()
+                    anchor:SetPoint(saved.point, UIParent, saved.relativePoint, saved.x, saved.y)
+                end
+                anchor.RefreshVisual()
+            end
+        end
+    end)
+
+
+
+
+
+    SLASH_FFXIVUI1 = "/ffxivtoggle"
+    SlashCmdList["FFXIVUI"] = function() 
+        anchorsUnlocked = not anchorsUnlocked
+        FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked) 
+        if anchorsUnlocked then
+            PlaySoundFile(soundOn, "Master")
+        else
+            PlaySoundFile(soundOff, "Master")
+        end
+    end
+
+    SLASH_FFXIVUIRESET1 = "/ffxivreset"
+    SlashCmdList["FFXIVUIRESET"] = function()
+        for key, anchor in pairs(FFXIV_UI_Anchors) do
+            local d = anchor.defaultData
+            anchor:SetScale(d.scale)
+            anchor:ClearAllPoints()
+            anchor:SetPoint(d.pos[1], UIParent, d.pos[1], d.pos[2], d.pos[3])
+            anchor.RefreshVisual()
+            SaveAnchorState(anchor, key)
+        end
+    end
 
  
 
-local options = CreateFrame("Frame")
-options.name = "FFXIV UI"
+    local options = CreateFrame("Frame")
+    options.name = "FFXIV UI"
 
-local title = options:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", 16, -16)
-title:SetText("FFXIV UI")
+    local title = options:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+    title:SetPoint("TOPLEFT", 16, -16)
+    title:SetText("FFXIV UI")
 
-local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
-local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
+    local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
+    local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
 
 
-local toggleAnchors = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-toggleAnchors:SetSize(160, 22)
-toggleAnchors:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16)
+    local toggleAnchors = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+    toggleAnchors:SetSize(160, 22)
+    toggleAnchors:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16)
 
-local function UpdateToggleButtonText()
-    toggleAnchors:SetText(anchorsUnlocked and "Hide Anchors" or "Show Anchors")
-end
-
-UpdateToggleButtonText()
-
-toggleAnchors:SetScript("OnClick", function()
-    anchorsUnlocked = not anchorsUnlocked
-    FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
-
-    if anchorsUnlocked then
-        PlaySoundFile(soundOn, "Master")
-    else
-        PlaySoundFile(soundOff, "Master")
+    local function UpdateToggleButtonText()
+        toggleAnchors:SetText(anchorsUnlocked and "Hide Anchors" or "Show Anchors")
     end
 
     UpdateToggleButtonText()
-end)
 
+    toggleAnchors:SetScript("OnClick", function()
+        anchorsUnlocked = not anchorsUnlocked
+        FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
 
-local reset = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-reset:SetSize(160, 22)
-reset:SetPoint("TOPLEFT", toggleAnchors, "BOTTOMLEFT", 0, -12)
-reset:SetText("Reset All Anchors")
-reset:SetScript("OnClick", function()
-    SlashCmdList["FFXIVUIRESET"]()
-end)
-
-local category = Settings.RegisterCanvasLayoutCategory(options, options.name)
-Settings.RegisterAddOnCategory(category)
-
-
-local font = CreateFont("CustomActionbarFont")
-font:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\EurostileExtendedBlack.ttf", 14, "")
-_G["NumberFontNormalSmallGray"]:SetFontObject(font)
-_G["NumberFontNormalSmallGray"]:SetTextColor(1, 1, 1)
-_G["NumberFontNormalSmallGray"]:SetShadowColor(0.2,0.2,0.2)
-_G["NumberFontNormalSmallGray"]:SetShadowOffset(1, -1)
-
-
-
-local escapeListener = CreateFrame("Frame", nil, UIParent)
-escapeListener:SetPropagateKeyboardInput(true)
-escapeListener:EnableKeyboard(true)
-
-escapeListener:SetScript("OnKeyDown", function(self, key)
-    if key == "ESCAPE" and anchorsUnlocked then
-        anchorsUnlocked = false
-        FFXIV_UI_SetAnchorsUnlocked(false)
-        PlaySoundFile(soundOff, "Master")
-  
-    end
-end)
-
-
-
-
-local combatListener = CreateFrame("Frame")
-combatListener:RegisterEvent("PLAYER_REGEN_DISABLED")
-combatListener:RegisterEvent("PLAYER_REGEN_ENABLED")
-
-combatListener:SetScript("OnEvent", function(self, event)
-    if event == "PLAYER_REGEN_DISABLED" then
-      
         if anchorsUnlocked then
+            PlaySoundFile(soundOn, "Master")
+        else
+            PlaySoundFile(soundOff, "Master")
+        end
+
+        UpdateToggleButtonText()
+    end)
+
+
+    local reset = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+    reset:SetSize(160, 22)
+    reset:SetPoint("TOPLEFT", toggleAnchors, "BOTTOMLEFT", 0, -12)
+    reset:SetText("Reset All Anchors")
+    reset:SetScript("OnClick", function()
+        SlashCmdList["FFXIVUIRESET"]()
+    end)
+
+ 
+local cb = CreateFrame("CheckButton", "FFXIV_UI_SoundCheck", options, "InterfaceOptionsCheckButtonTemplate")
+cb:SetPoint("TOPLEFT", reset, "BOTTOMLEFT", 0, -16)
+cb.Text:SetText("Enable Sound Effects")
+cb.Text:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 12)
+ 
+cb:SetScript("OnShow", function(self)
+    self:SetChecked(FFXIV_UI_DB.sfxEnabled)
+end)
+ 
+cb:SetScript("OnClick", function(self)
+    local isChecked = self:GetChecked()
+    FFXIV_UI_DB.sfxEnabled = isChecked
+    
+ 
+end)
+
+
+    local category = Settings.RegisterCanvasLayoutCategory(options, options.name)
+    Settings.RegisterAddOnCategory(category)
+
+
+    local font = CreateFont("CustomActionbarFont")
+    font:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\EurostileExtendedBlack.ttf", 14, "")
+    _G["NumberFontNormalSmallGray"]:SetFontObject(font)
+    _G["NumberFontNormalSmallGray"]:SetTextColor(1, 1, 1)
+    _G["NumberFontNormalSmallGray"]:SetShadowColor(0.2,0.2,0.2)
+    _G["NumberFontNormalSmallGray"]:SetShadowOffset(1, -1)
+
+
+
+    local escapeListener = CreateFrame("Frame", nil, UIParent)
+    escapeListener:SetPropagateKeyboardInput(true)
+    escapeListener:EnableKeyboard(true)
+
+    escapeListener:SetScript("OnKeyDown", function(self, key)
+        if key == "ESCAPE" and anchorsUnlocked then
             anchorsUnlocked = false
             FFXIV_UI_SetAnchorsUnlocked(false)
             PlaySoundFile(soundOff, "Master")
-             
+  
         end
-
-    elseif event == "PLAYER_REGEN_ENABLED" then
-
-    end
-end)
+    end)
 
 
 
-local minimapButton = CreateFrame("Button", "FFXIVUIMinimapButton", Minimap)
-minimapButton:SetSize(32, 32)
-minimapButton:SetFrameStrata("MEDIUM")
-minimapButton:SetFrameLevel(8)
-minimapButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 12, 32)
 
-minimapButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    local combatListener = CreateFrame("Frame")
+    combatListener:RegisterEvent("PLAYER_REGEN_DISABLED")
+    combatListener:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-local icon = minimapButton:CreateTexture(nil, "BACKGROUND")
-icon:SetTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Minimap\\MinimapButton.tga")
-icon:SetSize(70, 70)
-icon:SetPoint("CENTER")
+    combatListener:SetScript("OnEvent", function(self, event)
+        if event == "PLAYER_REGEN_DISABLED" then
+      
+            if anchorsUnlocked then
+                anchorsUnlocked = false
+                FFXIV_UI_SetAnchorsUnlocked(false)
+                PlaySoundFile(soundOff, "Master")
+             
+            end
 
+        elseif event == "PLAYER_REGEN_ENABLED" then
 
-local mask = minimapButton:CreateMaskTexture()
-mask:SetTexture("Interface\\Buttons\\WHITE8x8", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-mask:SetAllPoints(icon)
-icon:AddMaskTexture(mask)
-
-
-minimapButton:SetScript("OnEnter", function()
-    GameTooltip:SetOwner(minimapButton, "ANCHOR_LEFT")
-    GameTooltip:SetText("FFXIV UI Options")
-    GameTooltip:AddLine("Left-click: Open Settings", 1,1,1)
-    GameTooltip:AddLine("Right-click: Toggle Anchors", 1,1,1)
-    GameTooltip:AddLine("Shift Right-click: Reset Anchors", 1,1,1)
-    GameTooltip:Show()
-end)
-minimapButton:SetScript("OnLeave", function()
-    GameTooltip:Hide()
-end)
+        end
+    end)
 
 
-minimapButton:SetScript("OnClick", function(self, button)
+
+    local minimapButton = CreateFrame("Button", "FFXIVUIMinimapButton", Minimap)
+    minimapButton:SetSize(32, 32)
+    minimapButton:SetFrameStrata("MEDIUM")
+    minimapButton:SetFrameLevel(8)
+    minimapButton:SetPoint("BOTTOMRIGHT", Minimap, "BOTTOMRIGHT", 12, 32)
+
+    minimapButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+
+    local icon = minimapButton:CreateTexture(nil, "BACKGROUND")
+    icon:SetTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\Minimap\\MinimapButton.tga")
+    icon:SetSize(70, 70)
+    icon:SetPoint("CENTER")
+
+
+    local mask = minimapButton:CreateMaskTexture()
+    mask:SetTexture("Interface\\Buttons\\WHITE8x8", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+    mask:SetAllPoints(icon)
+    icon:AddMaskTexture(mask)
+
+
+    minimapButton:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(minimapButton, "ANCHOR_LEFT")
+        GameTooltip:SetText("FFXIV UI Options")
+        GameTooltip:AddLine("Left-click: Open Settings", 1,1,1)
+        GameTooltip:AddLine("Right-click: Toggle Anchors", 1,1,1)
+        GameTooltip:AddLine("Shift Right-click: Reset Anchors", 1,1,1)
+        GameTooltip:Show()
+    end)
+    minimapButton:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
+
+    minimapButton:SetScript("OnClick", function(self, button)
 
     
-    if InCombatLockdown() then
-        print("|cff00ff00[FFXIV UI]|r Cannot use minimap button while in combat.")
+        if InCombatLockdown() then
+            print("|cff00ff00[FFXIV UI]|r Cannot use minimap button while in combat.")
 
-        local f = CreateFrame("Frame")
-        f:RegisterEvent("PLAYER_REGEN_ENABLED")
-        f:SetScript("OnEvent", function(self)
-            print("|cff00ff00[FFXIV UI]|r Combat ended. You may now use the minimap button.")
-            self:UnregisterAllEvents()
-            self:SetScript("OnEvent", nil)
-        end)
+            local f = CreateFrame("Frame")
+            f:RegisterEvent("PLAYER_REGEN_ENABLED")
+            f:SetScript("OnEvent", function(self)
+                print("|cff00ff00[FFXIV UI]|r Combat ended. You may now use the minimap button.")
+                self:UnregisterAllEvents()
+                self:SetScript("OnEvent", nil)
+            end)
 
-        return
-    end
+            return
+        end
 
   
-    if button == "LeftButton" then
-        Settings.OpenToCategory(category.ID)
+        if button == "LeftButton" then
+            Settings.OpenToCategory(category.ID)
  
-    elseif button == "RightButton" then
+        elseif button == "RightButton" then
 
        
-        if IsShiftKeyDown() then
-            SlashCmdList["FFXIVUIRESET"]()
-            print("|cff00ff00[FFXIV UI]|r All anchors reset.")
+            if IsShiftKeyDown() then
+                SlashCmdList["FFXIVUIRESET"]()
+                print("|cff00ff00[FFXIV UI]|r All anchors reset.")
  
-        else
-            anchorsUnlocked = not anchorsUnlocked
-            FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
-
-            if anchorsUnlocked then
-                PlaySoundFile(soundOn, "Master")
             else
-                PlaySoundFile(soundOff, "Master")
+                anchorsUnlocked = not anchorsUnlocked
+                FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
+
+                if anchorsUnlocked then
+                    PlaySoundFile(soundOn, "Master")
+                else
+                    PlaySoundFile(soundOff, "Master")
+                end
             end
         end
-    end
-end)
+    end)
 
 
 

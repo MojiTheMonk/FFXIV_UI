@@ -6,7 +6,12 @@ if class ~= "WARLOCK" then return end
 local MAX_SOUL_SHARDS = 5
 local POWER_TYPE = 7  
 local gaugeFullSFX = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Gauge_Full.ogg" 
- 
+ local function PlayGaugeSFX(filePath)
+    if FFXIV_UI_DB and FFXIV_UI_DB.sfxEnabled then
+        PlaySoundFile(filePath, "Master")
+    end
+end
+
 local frame = CreateFrame("Frame", "SoulShardTrackerFrame", UIParent)
 frame:SetSize(350, 350)
 frame:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
@@ -59,7 +64,7 @@ local function UpdateSoulShards()
     end
 
     if shards == MAX_SOUL_SHARDS and previousShards < MAX_SOUL_SHARDS then
-        PlaySoundFile(gaugeFullSFX, "Master")
+         PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousShards = shards

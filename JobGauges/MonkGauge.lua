@@ -1,5 +1,10 @@
 --print("Monk Gauge Loaded")
 
+local function PlayGaugeSFX(filePath)
+    if not FFXIV_UI_DB or not FFXIV_UI_DB.sfxEnabled then return end
+    PlaySoundFile(filePath, "Master")
+end
+
 local _, class = UnitClass("player")
 if class ~= "MONK" then return end
 
@@ -43,7 +48,7 @@ local function HasAscension()
     return IsPlayerSpell(ASCENSION_SPELL_ID)
 end
 
--- Main frame
+ 
 local frame = CreateFrame("Frame", "ChiTrackerFrame", UIParent)
 frame:SetSize(275, 275)
 
@@ -51,13 +56,13 @@ local anchor = FFXIV_UI_Anchors.JobGauge
 frame:SetParent(anchor)
 frame:SetPoint("CENTER", anchor, "CENTER", 0, 0)
 
--- Base frame texture
+ 
 frame.base = frame:CreateTexture(nil, "BACKGROUND")
 frame.base:SetAllPoints(frame)
 frame.base:SetTexture(FRAME_TEXTURE_NORMAL)
 
 
--- Chi orbs
+ 
 frame.orbs = {}
 
 for i = 1, 6 do
@@ -133,14 +138,14 @@ local function UpdateChi()
         end
     end
 
-    if power == MAX_CHI and previousChi < MAX_CHI then
-        PlaySoundFile(gaugeFullSFX, "Master")
-    end
+if power == MAX_CHI and previousChi < MAX_CHI then
+    PlayGaugeSFX(gaugeFullSFX)
+end
 
     previousChi = power
 end
 
--- Events
+ 
 frame:RegisterEvent("UNIT_POWER_UPDATE")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 frame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")

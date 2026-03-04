@@ -7,7 +7,11 @@ local MAX_ARCANE_CHARGES = 4
 local POWER_TYPE = Enum.PowerType.ArcaneCharges
 
 local gaugeFullSFX = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Gauge_Full.ogg"    
-
+local function PlayGaugeSFX(filePath)
+    if FFXIV_UI_DB and FFXIV_UI_DB.sfxEnabled then
+        PlaySoundFile(filePath, "Master")
+    end
+end
  
 local frame = CreateFrame("Frame", "ArcaneChargeFrame", UIParent)
 frame:SetSize(300, 300)
@@ -68,7 +72,7 @@ local function UpdateArcaneCharges()
     end
 
     if power == MAX_ARCANE_CHARGES and previousArcaneCharges < MAX_ARCANE_CHARGES then
-        PlaySoundFile(gaugeFullSFX, "Master")
+         PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousArcaneCharges = power

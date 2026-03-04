@@ -3,7 +3,11 @@
 local _, class = UnitClass("player")
 if class ~= "ROGUE" then return end
 local gaugeFullSFX = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Gauge_Full.ogg"
- 
+ local function PlayGaugeSFX(filePath)
+    if FFXIV_UI_DB and FFXIV_UI_DB.sfxEnabled then
+        PlaySoundFile(filePath, "Master")
+    end
+end
 local POWER_TYPE = Enum.PowerType.ComboPoints
 
  
@@ -101,7 +105,7 @@ local function UpdateComboPoints()
     end
 
     if points == MAX_COMBO_POINTS and previousComboPoints < MAX_COMBO_POINTS then
-        PlaySoundFile(gaugeFullSFX, "Master")
+         PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousComboPoints = points

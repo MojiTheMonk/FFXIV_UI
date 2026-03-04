@@ -22,6 +22,11 @@ frame:SetPoint("CENTER", anchor, "CENTER", 0, 0)
 
 frame.runes = {}
 
+local function PlayGaugeSFX(filePath)
+    if not FFXIV_UI_DB or not FFXIV_UI_DB.sfxEnabled then return end
+    PlaySoundFile(filePath, "Master")
+end
+
 local RUNE_POSITIONS = {
     [1] = { x = -50, y = -10 },
     [2] = { x =   0, y = -10 },
@@ -158,7 +163,7 @@ local function UpdateAllRunes()
     end
 
     if readyCount == MAX_RUNES and previousReadyRunes < MAX_RUNES then
-        PlaySoundFile(gaugeFullSFX, "Master")
+          PlayGaugeSFX(gaugeFullSFX)
     end
 
     previousReadyRunes = readyCount
