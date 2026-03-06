@@ -49,27 +49,27 @@ frame:SetScript("OnEvent", function(self, event, arg1)
         DebugPrint("PLAYER_REGEN_DISABLED triggered")
         PlayCustomSFX("FFXIV_Aggro.mp3")
 
-    elseif event == "PLAYER_TARGET_CHANGED" then
+  elseif event == "PLAYER_TARGET_CHANGED" then
         local hasTarget = UnitExists("target")
-        local currentGUID = hasTarget and UnitGUID("target") or nil
-        DebugPrint("PLAYER_TARGET_CHANGED fired. currentGUID:", currentGUID, "lastTargetGUID:", lastTargetGUID)
-
+        
+      
         if now - lastPlayTime < 0.1 then
-            DebugPrint("Skipped: cooldown")
             return
         end
 
-        if currentGUID ~= lastTargetGUID then
-            if currentGUID then
+ 
+        if not lastTargetGUID or not UnitIsUnit("target", "playertarget") then
+            if hasTarget then
                 DebugPrint("Playing Switch_Target SFX")
                 PlayCustomSFX("FFXIV_Switch_Target.mp3")
+               
+                lastTargetGUID = UnitGUID("target")
             else
                 DebugPrint("Playing Untarget SFX")
                 PlayCustomSFX("FFXIV_Untarget.mp3")
+                lastTargetGUID = nil
             end
             lastPlayTime = now
-        else
-            DebugPrint("No target change detected")
         end
 
         lastTargetGUID = currentGUID
