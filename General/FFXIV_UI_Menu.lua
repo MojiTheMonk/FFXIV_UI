@@ -261,9 +261,32 @@ end)
 cb:SetScript("OnClick", function(self)
     local isChecked = self:GetChecked()
     FFXIV_UI_DB.sfxEnabled = isChecked
+
+
     
  
 end)
+
+
+FFXIV_UI_DB.errorSfxEnabled = FFXIV_UI_DB.errorSfxEnabled ~= false
+local errorCB = CreateFrame("CheckButton", "FFXIV_UI_ErrorSoundCheck", options, "InterfaceOptionsCheckButtonTemplate")
+errorCB:SetPoint("TOPLEFT", cb, "BOTTOMLEFT", 0, -8)
+errorCB.Text:SetText("Enable Error Sound")
+errorCB.Text:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 12)
+
+errorCB:SetScript("OnShow", function(self)
+    self:SetChecked(FFXIV_UI_DB.errorSfxEnabled)
+end)
+
+errorCB:SetScript("OnClick", function(self)
+    local isChecked = self:GetChecked()
+    FFXIV_UI_DB.errorSfxEnabled = isChecked
+end)
+
+
+
+
+
 
 
     local category = Settings.RegisterCanvasLayoutCategory(options, options.name)
