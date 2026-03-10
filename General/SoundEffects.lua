@@ -11,6 +11,8 @@ local events = {
     "PLAYER_LEVEL_UP",
     "RAID_INSTANCE_WELCOME",
     "CHAT_MSG_WHISPER",
+    "QUEST_ACCEPTED",
+    "QUEST_TURNED_IN"
 }
 
 for _, event in ipairs(events) do 
@@ -30,7 +32,31 @@ local function DebugPrint(...)
     end
 end
 
- 
+
+local QuestAcceptSounds = {
+     "FFXIV_Quest_Accepted.ogg",
+     "FFXIV_Quest_Accepted_HW.ogg",
+     "FFXIV_Quest_Accepted_SB.ogg",
+     "FFXIV_Quest_Accepted_ShB.ogg",
+     "FFXIV_Quest_Accepted_EW.ogg",
+     "FFXIV_Quest_Accepted_DT.mp3",
+
+      "FFXIV_Quest_Accepted_Island.ogg",
+      "FFXIV_Quest_Accepted_Tribal.ogg",
+}
+
+local QuestCompleteSounds = {
+     "FFXIV_Quest_Complete.ogg",
+     "FFXIV_Quest_Complete_HW.ogg",
+     "FFXIV_Quest_Complete_SB.ogg",
+     "FFXIV_Quest_Complete_ShB.ogg",
+     "FFXIV_Quest_Complete_EW.ogg",
+     "FFXIV_Quest_Complete_DT.mp3",
+
+     "FFXIV_Quest_Complete_Island.ogg",
+}
+
+
 local function PlayCustomSFX(fileName)
 
     if not FFXIV_UI_DB or not FFXIV_UI_DB.sfxEnabled then
@@ -48,7 +74,7 @@ local function PlayCustomSFX(fileName)
     PlaySoundFile(path, "Master")
 end
 
- 
+
 frame:SetScript("OnEvent", function(self, event, arg1)
 
     if event == "ADDON_LOADED" and arg1 == "FFXIV_UI" then
@@ -63,6 +89,14 @@ frame:SetScript("OnEvent", function(self, event, arg1)
 
         if FFXIV_UI_DB.errorSfxEnabled == nil then
             FFXIV_UI_DB.errorSfxEnabled = true
+        end
+
+        if FFXIV_UI_DB.questAcceptSFX == nil then
+            FFXIV_UI_DB.questAcceptSFX = 1
+        end
+
+        if FFXIV_UI_DB.questCompleteSFX == nil then
+            FFXIV_UI_DB.questCompleteSFX = 1
         end
          
         lastTargetGUID = UnitExists("target") and UnitGUID("target") or nil
@@ -150,11 +184,38 @@ frame:SetScript("OnEvent", function(self, event, arg1)
 
         PlayCustomSFX("FFXIV_Incoming_Tell_1.mp3")
 
+
+  elseif event == "QUEST_ACCEPTED" then
+
+    DebugPrint("QUEST_ACCEPTED triggered")
+
+    local index = FFXIV_UI_DB.questAcceptSFX or 1
+
+    if index > 0 then
+        local file = QuestAcceptSounds[index]
+        if file then
+            PlayCustomSFX(file)
+        end
+    end
+
+elseif event == "QUEST_TURNED_IN" then
+
+    DebugPrint("QUEST_TURNED_IN triggered")
+
+    local index = FFXIV_UI_DB.questCompleteSFX or 1
+
+    if index > 0 then
+        local file = QuestCompleteSounds[index]
+        if file then
+            PlayCustomSFX(file)
+        end
+    end
+
     end
 
 end)
 
- 
+
 SLASH_FFXIVSFX1 = "/FFXIVSFX"
 
 SlashCmdList["FFXIVSFX"] = function()
@@ -166,5 +227,39 @@ SlashCmdList["FFXIVSFX"] = function()
         and "|cff00ff00FFXIV_UI sounds enabled|r"
         or "|cffff0000FFXIV_UI sounds disabled|r"
     )
+
+end
+
+
+SLASH_FFXIVQUESTACCEPT1 = "/ffxivquestaccept"
+
+SlashCmdList["FFXIVQUESTACCEPT"] = function(msg)
+
+    local num = tonumber(msg)
+
+    if not num or num < 1 or num > 6 then
+        print("|cffffcc00Usage: /ffxivquestaccept 1-8|r")
+        return
+    end
+
+    FFXIV_UI_DB.questAcceptSFX = num
+    print("|cff00ff00Quest Accept sound set to:", num, "|r")
+
+end
+
+
+SLASH_FFXIVQUESTCOMPLETE1 = "/ffxivquestcomplete"
+
+SlashCmdList["FFXIVQUESTCOMPLETE"] = function(msg)
+
+    local num = tonumber(msg)
+
+    if not num or num < 1 or num > 6 then
+        print("|cffffcc00Usage: /ffxivquestcomplete 1-7|r")
+        return
+    end
+
+    FFXIV_UI_DB.questCompleteSFX = num
+    print("|cff00ff00Quest Complete sound set to:", num, "|r")
 
 end

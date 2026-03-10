@@ -204,67 +204,85 @@
     end
 
  
+   --Options--
+local options = CreateFrame("Frame")
+options.name = "FFXIV UI"
 
-    local options = CreateFrame("Frame")
-    options.name = "FFXIV UI"
+local title = options:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+title:SetPoint("TOPLEFT", 16, -16)
+title:SetText("FFXIV UI")
 
-    local title = options:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-    title:SetPoint("TOPLEFT", 16, -16)
-    title:SetText("FFXIV UI")
+local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
+local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
 
-    local soundOn  = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Open_Window.mp3"
-    local soundOff = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Close_Window.mp3"
+local QuestAcceptSoundNames = {
+    "None",
+    "A Realm Reborn",
+    "Heavensward",
+    "Stormblood",
+    "Shadowbringers",
+    "Endwalker",
+    "Dawntrail",
+    "Island Sanctuary",
+    "Tribal"
+}
+
+local QuestCompleteSoundNames = {
+    "None",
+    "A Realm Reborn",
+    "Heavensward",
+    "Stormblood",
+    "Shadowbringers",
+    "Endwalker",
+    "Dawntrail",
+    "Island Sanctuary"
+}
 
 
-    local toggleAnchors = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    toggleAnchors:SetSize(160, 22)
-    toggleAnchors:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16)
+local toggleAnchors = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+toggleAnchors:SetSize(160, 22)
+toggleAnchors:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -16)
 
-    local function UpdateToggleButtonText()
-        toggleAnchors:SetText(anchorsUnlocked and "Hide Anchors" or "Show Anchors")
+local function UpdateToggleButtonText()
+    toggleAnchors:SetText(anchorsUnlocked and "Hide Anchors" or "Show Anchors")
+end
+
+UpdateToggleButtonText()
+
+toggleAnchors:SetScript("OnClick", function()
+    anchorsUnlocked = not anchorsUnlocked
+    FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
+
+    if anchorsUnlocked then
+        PlaySoundFile(soundOn, "Master")
+    else
+        PlaySoundFile(soundOff, "Master")
     end
 
     UpdateToggleButtonText()
-
-    toggleAnchors:SetScript("OnClick", function()
-        anchorsUnlocked = not anchorsUnlocked
-        FFXIV_UI_SetAnchorsUnlocked(anchorsUnlocked)
-
-        if anchorsUnlocked then
-            PlaySoundFile(soundOn, "Master")
-        else
-            PlaySoundFile(soundOff, "Master")
-        end
-
-        UpdateToggleButtonText()
-    end)
+end)
 
 
-    local reset = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
-    reset:SetSize(160, 22)
-    reset:SetPoint("TOPLEFT", toggleAnchors, "BOTTOMLEFT", 0, -12)
-    reset:SetText("Reset All Anchors")
-    reset:SetScript("OnClick", function()
-        SlashCmdList["FFXIVUIRESET"]()
-    end)
+local reset = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+reset:SetSize(160, 22)
+reset:SetPoint("TOPLEFT", toggleAnchors, "BOTTOMLEFT", 0, -12)
+reset:SetText("Reset All Anchors")
+reset:SetScript("OnClick", function()
+    SlashCmdList["FFXIVUIRESET"]()
+end)
 
- 
+
 local cb = CreateFrame("CheckButton", "FFXIV_UI_SoundCheck", options, "InterfaceOptionsCheckButtonTemplate")
 cb:SetPoint("TOPLEFT", reset, "BOTTOMLEFT", 0, -16)
 cb.Text:SetText("Enable Sound Effects")
 cb.Text:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisRegular.ttf", 12)
- 
+
 cb:SetScript("OnShow", function(self)
     self:SetChecked(FFXIV_UI_DB.sfxEnabled)
 end)
- 
+
 cb:SetScript("OnClick", function(self)
-    local isChecked = self:GetChecked()
-    FFXIV_UI_DB.sfxEnabled = isChecked
-
-
-    
- 
+    FFXIV_UI_DB.sfxEnabled = self:GetChecked()
 end)
 
 
@@ -279,9 +297,192 @@ errorCB:SetScript("OnShow", function(self)
 end)
 
 errorCB:SetScript("OnClick", function(self)
-    local isChecked = self:GetChecked()
-    FFXIV_UI_DB.errorSfxEnabled = isChecked
+    FFXIV_UI_DB.errorSfxEnabled = self:GetChecked()
 end)
+
+
+-- Quest Accept Dropdown
+
+local acceptLabel = options:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+acceptLabel:SetPoint("TOPLEFT", errorCB, "BOTTOMLEFT", 0, -20)
+acceptLabel:SetText("Quest Accept Sound")
+
+local acceptDropdown = CreateFrame("Frame", "FFXIV_UI_QuestAcceptDropdown", options, "UIDropDownMenuTemplate")
+acceptDropdown:SetPoint("TOPLEFT", acceptLabel, "BOTTOMLEFT", -16, -6)
+
+UIDropDownMenu_SetWidth(acceptDropdown, 180)
+
+UIDropDownMenu_Initialize(acceptDropdown, function(self, level)
+
+    for i, name in ipairs(QuestAcceptSoundNames) do
+
+        local info = UIDropDownMenu_CreateInfo()
+        info.text = name
+
+        info.func = function()
+            FFXIV_UI_DB.questAcceptSFX = i - 1
+            UIDropDownMenu_SetSelectedID(acceptDropdown, i)
+        end
+
+        info.checked = (FFXIV_UI_DB.questAcceptSFX == (i - 1))
+
+        UIDropDownMenu_AddButton(info)
+    end
+
+end)
+
+acceptDropdown:SetScript("OnShow", function(self)
+
+    local current = (FFXIV_UI_DB.questAcceptSFX or 1) + 1
+    UIDropDownMenu_SetSelectedID(self, current)
+    UIDropDownMenu_SetText(self, QuestAcceptSoundNames[current])
+
+end)
+
+
+-- Quest Complete Dropdown
+
+local completeLabel = options:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+completeLabel:SetPoint("TOPLEFT", acceptDropdown, "BOTTOMLEFT", 16, -16)
+completeLabel:SetText("Quest Complete Sound")
+
+local completeDropdown = CreateFrame("Frame", "FFXIV_UI_QuestCompleteDropdown", options, "UIDropDownMenuTemplate")
+completeDropdown:SetPoint("TOPLEFT", completeLabel, "BOTTOMLEFT", -16, -6)
+
+UIDropDownMenu_SetWidth(completeDropdown, 180)
+
+UIDropDownMenu_Initialize(completeDropdown, function(self, level)
+
+    for i, name in ipairs(QuestCompleteSoundNames) do
+
+        local info = UIDropDownMenu_CreateInfo()
+        info.text = name
+
+        info.func = function()
+            FFXIV_UI_DB.questCompleteSFX = i - 1
+            UIDropDownMenu_SetSelectedID(completeDropdown, i)
+        end
+
+        info.checked = (FFXIV_UI_DB.questCompleteSFX == (i - 1))
+
+        UIDropDownMenu_AddButton(info)
+    end
+
+end)
+
+completeDropdown:SetScript("OnShow", function(self)
+
+    local current = (FFXIV_UI_DB.questCompleteSFX or 1) + 1
+    UIDropDownMenu_SetSelectedID(self, current)
+    UIDropDownMenu_SetText(self, QuestCompleteSoundNames[current])
+
+end)
+local function UpdateAudioOptionsState()
+    local enabled = FFXIV_UI_DB.sfxEnabled
+    cb:SetChecked(enabled)
+
+    -- Disable/enable the other audio options based on main SFX checkbox
+    errorCB:SetEnabled(enabled)
+    acceptDropdown:EnableMouse(enabled)
+    completeDropdown:EnableMouse(enabled)
+    
+ 
+    errorCB.Text:SetTextColor(enabled and 1 or 0.5, enabled and 1 or 0.5, enabled and 1 or 0.5)
+    acceptLabel:SetTextColor(enabled and 1 or 0.5, enabled and 1 or 0.5, enabled and 1 or 0.5)
+    completeLabel:SetTextColor(enabled and 1 or 0.5, enabled and 1 or 0.5, enabled and 1 or 0.5)
+end
+
+ 
+cb:SetScript("OnClick", function(self)
+    FFXIV_UI_DB.sfxEnabled = self:GetChecked()
+    UpdateAudioOptionsState()
+end)
+
+ 
+cb:SetScript("OnShow", function(self)
+    UpdateAudioOptionsState()
+end)
+
+ 
+acceptDropdown:SetScript("OnShow", function(self)
+    self:EnableMouse(FFXIV_UI_DB.sfxEnabled)
+    local current = (FFXIV_UI_DB.questAcceptSFX or 1) + 1
+    UIDropDownMenu_SetSelectedID(self, current)
+    UIDropDownMenu_SetText(self, QuestAcceptSoundNames[current])
+end)
+
+completeDropdown:SetScript("OnShow", function(self)
+    self:EnableMouse(FFXIV_UI_DB.sfxEnabled)
+    local current = (FFXIV_UI_DB.questCompleteSFX or 1) + 1
+    UIDropDownMenu_SetSelectedID(self, current)
+    UIDropDownMenu_SetText(self, QuestCompleteSoundNames[current])
+end)
+
+-- Quest Accept Preview Button
+local acceptPreview = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+acceptPreview:SetSize(60, 22)
+acceptPreview:SetPoint("LEFT", acceptDropdown, "RIGHT", 8, 0)
+acceptPreview:SetText("Preview")
+acceptPreview:SetScript("OnClick", function()
+    if FFXIV_UI_DB.sfxEnabled then
+        local idx = FFXIV_UI_DB.questAcceptSFX or 0
+        local soundFile
+        if idx == 0 then
+            print("|cff00ff00[FFXIV UI]|r No sound selected for Quest Accept.")
+            return
+        elseif idx == 1 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted.ogg" 
+        elseif idx == 2 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_HW.ogg"
+        elseif idx == 3 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_SB.ogg"
+        elseif idx == 4 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_ShB.ogg"
+        elseif idx == 5 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_EW.ogg"
+        elseif idx == 6 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_DT.mp3"
+        elseif idx == 7 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_Island.ogg"
+        elseif idx == 8 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Accepted_Tribal.ogg"
+        end
+        if soundFile then PlaySoundFile(soundFile, "Master") end
+    end
+end)
+
+-- Quest Complete Preview Button
+local completePreview = CreateFrame("Button", nil, options, "UIPanelButtonTemplate")
+completePreview:SetSize(60, 22)
+completePreview:SetPoint("LEFT", completeDropdown, "RIGHT", 8, 0)
+completePreview:SetText("Preview")
+completePreview:SetScript("OnClick", function()
+    if FFXIV_UI_DB.sfxEnabled then
+        local idx = FFXIV_UI_DB.questCompleteSFX or 0
+        local soundFile
+               if idx == 0 then
+            print("|cff00ff00[FFXIV UI]|r No sound selected for Quest Accept.")
+            return
+        elseif idx == 1 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete.ogg"  
+        elseif idx == 2 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_HW.ogg"
+        elseif idx == 3 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_SB.ogg"
+        elseif idx == 4 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_ShB.ogg"
+        elseif idx == 5 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_EW.ogg"
+        elseif idx == 6 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_DT.mp3"
+        elseif idx == 7 then
+            soundFile = "Interface\\AddOns\\FFXIV_UI\\Media\\Audio\\FFXIV_Quest_Complete_Island.ogg"
+        end
+        if soundFile then PlaySoundFile(soundFile, "Master") end
+    end
+end)
+
+--Options end--
 
 
 

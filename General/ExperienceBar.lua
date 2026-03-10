@@ -1,9 +1,7 @@
-﻿
---print("FFXIV UI Player XP Frame loaded")
+﻿print("FFXIV UI Player XP Frame loaded")
 
 local SCALE = 100
 local function s(x) return x * SCALE / 100 end
-
 
 FFPlayerXPFrame = CreateFrame("Frame", "PlayerXPFrame", UIParent)
 local f = FFPlayerXPFrame
@@ -19,7 +17,6 @@ f:SetPoint("CENTER", anchor, "CENTER", 0, 0)
 local bg = f:CreateTexture(nil, "BACKGROUND")
 bg:SetAllPoints()
 bg:SetTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\ExperienceBar\\XPBG")
-
 
 local restedBar = CreateFrame("StatusBar", nil, f)
 restedBar:SetAllPoints()
@@ -38,7 +35,6 @@ local outlineFrame = CreateFrame("Frame", nil, f)
 outlineFrame:SetFrameLevel(f:GetFrameLevel() + 5)
 outlineFrame:SetAllPoints()
 outlineFrame:EnableMouse(false)
-
 
 local classLabel = outlineFrame:CreateFontString(nil, "OVERLAY")
 classLabel:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\MavenPro-Bold.ttf", s(18))
@@ -66,19 +62,24 @@ levelText:SetPoint("LEFT", vLabel, "RIGHT", 0, -1)
 levelText:SetShadowOffset(1, -1)
 levelText:SetShadowColor(0.8196, 0.7804, 0.6980)  
 
+local xpNumbers = outlineFrame:CreateFontString(nil, "OVERLAY")
+xpNumbers:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisMedium.ttf", s(16))
+xpNumbers:SetPoint("LEFT", levelText, "RIGHT", s(50), 1)
+xpNumbers:SetShadowOffset(0, -1)
+xpNumbers:SetShadowColor(0.8196, 0.7804, 0.6980)  
 
-local xpText = outlineFrame:CreateFontString(nil, "OVERLAY")
-xpText:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisMedium.ttf", s(16))
-xpText:SetPoint("LEFT", levelText, "RIGHT", s(50), 1)
-xpText:SetShadowOffset(0, -1)
-xpText:SetShadowColor(0.8196, 0.7804, 0.6980)  
+local xpPercent = outlineFrame:CreateFontString(nil, "OVERLAY")
+xpPercent:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisMedium.ttf", s(16))
+xpPercent:SetPoint("LEFT", xpNumbers, "RIGHT", s(5), 0)
+xpPercent:SetShadowOffset(0, -1)
+xpPercent:SetShadowColor(0.8196, 0.7804, 0.6980)  
+xpPercent:Hide()
 
 local restedIndicator = f:CreateTexture(nil, "OVERLAY")
 restedIndicator:SetTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\ExperienceBar\\FFRested")
 restedIndicator:SetSize(s(180), s(180))
 restedIndicator:SetPoint("LEFT", f, "RIGHT", s(-75), -11)
 restedIndicator:Hide()
-
 
 local CLASS_ABBR = {
     WARRIOR     = "WAR",
@@ -96,7 +97,6 @@ local CLASS_ABBR = {
     EVOKER      = "EV0",
 }
 
-
 local function HideDefaultXPBar()
     if MainMenuExpBar then
         MainMenuExpBar:UnregisterAllEvents()
@@ -109,7 +109,6 @@ local function HideDefaultXPBar()
 end
 
 HideDefaultXPBar()
-
 
 local function UpdateXP()
     local currXP  = UnitXP("player")
@@ -133,10 +132,8 @@ local function UpdateXP()
 
     restedIndicator:SetShown(IsResting())
 
-    xpText:SetText(string.format(
-        "EXP %d/%d (%.0f%%)",
-        currXP, maxXP, percent
-    ))
+    xpNumbers:SetText(string.format("EXP %d/%d", currXP, maxXP))
+    xpPercent:SetText(string.format("(%.0f%%)", percent))
 end
 
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -147,5 +144,12 @@ f:RegisterEvent("ZONE_CHANGED")
 f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 f:SetScript("OnEvent", UpdateXP)
-
 UpdateXP()
+
+f:EnableMouse(true)
+f:SetScript("OnEnter", function()
+    xpPercent:Show()
+end)
+f:SetScript("OnLeave", function()
+    xpPercent:Hide()
+end)
