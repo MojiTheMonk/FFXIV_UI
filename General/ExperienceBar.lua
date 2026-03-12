@@ -73,7 +73,7 @@ xpPercent:SetFont("Interface\\AddOns\\FFXIV_UI\\Media\\Fonts\\AxisMedium.ttf", s
 xpPercent:SetPoint("LEFT", xpNumbers, "RIGHT", s(5), 0)
 xpPercent:SetShadowOffset(0, -1)
 xpPercent:SetShadowColor(0.8196, 0.7804, 0.6980)  
-xpPercent:Hide()
+ 
 
 local restedIndicator = f:CreateTexture(nil, "OVERLAY")
 restedIndicator:SetTexture("Interface\\AddOns\\FFXIV_UI\\Media\\Textures\\ExperienceBar\\FFRested")
@@ -145,11 +145,4 @@ f:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 
 f:SetScript("OnEvent", UpdateXP)
 UpdateXP()
-
-f:EnableMouse(true)
-f:SetScript("OnEnter", function()
-    xpPercent:Show()
-end)
-f:SetScript("OnLeave", function()
-    xpPercent:Hide()
-end)
+ 
