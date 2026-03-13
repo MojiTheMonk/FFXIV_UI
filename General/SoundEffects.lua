@@ -71,7 +71,7 @@ local function PlayCustomSFX(fileName)
 
     DebugPrint("Attempting to play:", path)
 
-    PlaySoundFile(path, "Master")
+    PlaySoundFile(path, "SFX")
 end
 
 
